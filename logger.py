@@ -1,26 +1,32 @@
 import logging
 import os
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 
 def setup_logger(logger_name):
     logger = logging.getLogger(logger_name)
-    logger.handlers = []
-    logger.setLevel(logging.DEBUG)
 
+    if not logger.hasHandlers():  # Ensure no duplicate handlers
+        logger.setLevel(logging.DEBUG)
 
-    formatter = logging.Formatter('[%(asctime)s]  [%(levelname)s]  [%(name)s]  %(message)s')
+        formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s')
 
-    
-    log_file_path = f'./logs/daily_report_{datetime.now().strftime("%d%m%y")}.log'
-    directory = os.path.dirname(log_file_path)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+        log_file_path = f'./logs/daily_report_{datetime.now().strftime("%d%m%y")}.log'
+        directory = os.path.dirname(log_file_path)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
-    file_handler = logging.FileHandler(log_file_path)
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(formatter)
+        # File handler with rotation
+        file_handler = RotatingFileHandler(log_file_path, maxBytes=5*1024*1024, backupCount=3)  # 5 MB files, keep 3 backups
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
 
-    logger.addHandler(file_handler)
+        # Console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
 
     return logger
 
