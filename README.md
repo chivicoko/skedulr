@@ -1,5 +1,5 @@
 # How to Use the Skedulr App
-This is a desktop application that I built to use for automating my daily daily emails to my family and friends to keep motivating them and keeping them positive for tomorrow. This way I don't need to worry about sending it every single day because the app will be doing it for me every day without my help.
+This is a desktop application that I built to use for automating my daily emails to my family and friends to keep motivating them and keeping them positive for tomorrow. This way I don't need to worry about sending it every single day because the app will be doing it for me every day without my help. And if I want I can let the app generate the email it'll send by just leaving the subject and body of the app unfilled.
 
 ## Available Scripts
 

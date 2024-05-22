@@ -29,12 +29,12 @@ quotes = [
     "The best way to predict the future is to invent it. - Alan Kay",
     "Life is 10% what happens to us and 90% how we react to it. - Charles R. Swindoll",
     "The only limit to our realization of tomorrow is our doubts of today. - Franklin D. Roosevelt",
-    "Your time is limited, don’t waste it living someone else’s life. - Steve Jobs",
+    "Your time is limited, don't waste it living someone else's life. - Steve Jobs",
     "The best time to plant a tree was 20 years ago. The second best time is now. - Chinese Proverb",
-    "You miss 100% of the shots you don’t take. - Wayne Gretzky",
+    "You miss 100% of the shots you don't take. - Wayne Gretzky",
     "I am not a product of my circumstances. I am a product of my decisions. - Stephen R. Covey",
     "Every strike brings me closer to the next home run. - Babe Ruth",
-    "Life is what happens when you’re busy making other plans. - John Lennon",
+    "Life is what happens when you're busy making other plans. - John Lennon",
     "The only way to do great work is to love what you do. - Steve Jobs",
 ]
 
@@ -53,8 +53,7 @@ class EmailScheduler(QThread):
     def get_data(self):
         try:
             log_info(logger, "Getting data...")
-            if not self.email_body:
-                self.email_body = random.choice(quotes)
+            self.email_body = random.choice(quotes)
             log_debug(logger, f"Data gotten: {self.email_body}")
             return self.email_body
         except Exception as e:
@@ -63,10 +62,6 @@ class EmailScheduler(QThread):
             raise
 
     def send_email(self, subject, body, to_addresses):
-        if self.email_sent_successfully:
-            log_info(logger, "Email already sent successfully for this scheduled time.")
-            return True
-
         log_info(logger, "Preparing to send email...")
         self.log_signal.emit(f'<div style="color:black;">[{datetime.now().strftime("%H:%M:%S")}] [INFO] Preparing to send email...</div>')
         msg = MIMEMultipart()
@@ -85,7 +80,6 @@ class EmailScheduler(QThread):
                 server.login(SMTP_USERNAME, SMTP_PASSWORD)
                 server.sendmail(EMAIL_FROM, to_addresses, msg.as_string())
                 server.quit()
-                self.email_sent_successfully = True
                 log_success(logger, "Email sent successfully.")
                 self.log_signal.emit(f'<div style="color:green;">[{datetime.now().strftime("%H:%M:%S")}] [SUCCESS] Email sent successfully.</div>')
                 return True
@@ -122,9 +116,13 @@ class EmailScheduler(QThread):
         try:
             log_info(logger, f"Job started at {datetime.now()}")
             self.log_signal.emit(f'<div style="color:black;">[{datetime.now().strftime("%H:%M:%S")}] [INFO] Job started at {datetime.now()}</div>')
+            
+            self.email_sent_successfully = False
+
             all_data = self.get_data()
             if not self.email_subject:
                 self.email_subject = "Life's Good! Tomorrow is Pregnant!"
+
             if not self.email_sent_successfully:
                 if self.send_email(self.email_subject, all_data, self.email_to):
                     self.email_sent_successfully = True
