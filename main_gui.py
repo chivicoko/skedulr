@@ -17,7 +17,6 @@ from logger import setup_logger, log_info, log_debug, log_error, log_success, lo
 
 load_dotenv()
 
-# Set up logger
 logger = setup_logger('Daily Report')
 
 SMTP_SERVER = os.getenv('SMTP_SERVER')
@@ -36,7 +35,7 @@ class EmailScheduler(QThread):
         self.email_body = ''
         self.scheduled_time = QTime.currentTime()
         self.running = False
-        self.email_sent_successfully = False  # Flag to track successful email attempt
+        self.email_sent_successfully = False
 
     def gather_report_data(self):
         try:
@@ -50,7 +49,7 @@ class EmailScheduler(QThread):
             raise
 
     def send_email(self, subject, body, to_addresses):
-        if self.email_sent_successfully:  # Check if email already sent successfully
+        if self.email_sent_successfully:
             log_info(logger, "Email already sent successfully for this scheduled time.")
             return True
 
@@ -71,7 +70,7 @@ class EmailScheduler(QThread):
                 server.login(SMTP_USERNAME, SMTP_PASSWORD)
                 server.sendmail(EMAIL_FROM, to_addresses, msg.as_string())
                 server.quit()
-                self.email_sent_successfully = True  # Set flag to True if email sent successfully
+                self.email_sent_successfully = True
                 return True
             except smtplib.SMTPConnectError as e:
                 log_warning(logger, f"Network issue on attempt {attempt + 1} of {retries}: {e}")
@@ -107,9 +106,9 @@ class EmailScheduler(QThread):
             log_info(logger, f"Job started at {datetime.now()}")
             self.log_signal.emit(f'<div style="color:black;">[{datetime.now().strftime("%H:%M:%S")}] [INFO] Job started at {datetime.now()}</div>')
             report_data = self.gather_report_data()
-            if not self.email_sent_successfully:  # Check if email already sent successfully
+            if not self.email_sent_successfully:
                 if self.send_email(self.email_subject, report_data, self.email_to):
-                    self.email_sent_successfully = True  # Set flag to True upon successful email attempt
+                    self.email_sent_successfully = True
                     log_info(logger, f"Job completed successfully at {datetime.now()}")
                     self.log_signal.emit(f'<div style="color:green;">[{datetime.now().strftime("%H:%M:%S")}] [SUCCESS] Job completed successfully at {datetime.now()}</div>')
                 else:

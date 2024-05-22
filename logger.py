@@ -9,7 +9,7 @@ def setup_logger(logger_name):
     """
     logger = logging.getLogger(logger_name)
 
-    if not logger.hasHandlers():  # Ensure no duplicate handlers
+    if not logger.hasHandlers():
         logger.setLevel(logging.DEBUG)
 
         formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s')
@@ -19,13 +19,11 @@ def setup_logger(logger_name):
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-        # File handler with rotation
-        file_handler = RotatingFileHandler(log_file_path, maxBytes=5*1024*1024, backupCount=3)  # 5 MB files, keep 3 backups
+        file_handler = RotatingFileHandler(log_file_path, maxBytes=5*1024*1024, backupCount=3)
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
-        # Console handler
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.DEBUG)
         console_handler.setFormatter(formatter)
