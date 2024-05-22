@@ -3,6 +3,7 @@ import smtplib
 import schedule
 import time
 import os
+import random
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -14,16 +15,28 @@ from PyQt5.QtCore import QThread, pyqtSignal, QTime
 from dotenv import load_dotenv
 from logger import setup_logger, log_info, log_debug, log_error, log_success, log_failed, log_warning
 
-
 load_dotenv()
 
-logger = setup_logger('Daily Report')
+logger = setup_logger('Life Quotes')
 
 SMTP_SERVER = os.getenv('SMTP_SERVER')
 SMTP_PORT = os.getenv('SMTP_PORT')
 SMTP_USERNAME = os.getenv('SMTP_USERNAME')
 SMTP_PASSWORD = os.getenv('SMTP_PASSWORD')
 EMAIL_FROM = os.getenv('EMAIL_FROM')
+
+quotes = [
+    "The best way to predict the future is to invent it. - Alan Kay",
+    "Life is 10% what happens to us and 90% how we react to it. - Charles R. Swindoll",
+    "The only limit to our realization of tomorrow is our doubts of today. - Franklin D. Roosevelt",
+    "Your time is limited, don’t waste it living someone else’s life. - Steve Jobs",
+    "The best time to plant a tree was 20 years ago. The second best time is now. - Chinese Proverb",
+    "You miss 100% of the shots you don’t take. - Wayne Gretzky",
+    "I am not a product of my circumstances. I am a product of my decisions. - Stephen R. Covey",
+    "Every strike brings me closer to the next home run. - Babe Ruth",
+    "Life is what happens when you’re busy making other plans. - John Lennon",
+    "The only way to do great work is to love what you do. - Steve Jobs",
+]
 
 class EmailScheduler(QThread):
     log_signal = pyqtSignal(str)
@@ -37,15 +50,16 @@ class EmailScheduler(QThread):
         self.running = False
         self.email_sent_successfully = False
 
-    def gather_report_data(self):
+    def get_data(self):
         try:
-            log_info(logger, "Gathering report data...")
-            report_data = self.email_body
-            log_debug(logger, f"Report data gathered: {report_data}")
-            return report_data
+            log_info(logger, "Getting data...")
+            if not self.email_body:
+                self.email_body = random.choice(quotes)
+            log_debug(logger, f"Data gotten: {self.email_body}")
+            return self.email_body
         except Exception as e:
-            log_error(logger, f"Failed to gather report data. Error: {e}")
-            self.log_signal.emit(f'<div style="color:red;">[{datetime.now().strftime("%H:%M:%S")}] [FAILURE] Failed to gather report data. Error: {e}</div>')
+            log_error(logger, f"Failed to get data. Error: {e}")
+            self.log_signal.emit(f'<div style="color:red;">[{datetime.now().strftime("%H:%M:%S")}] [FAILURE] Failed to get data. Error: {e}</div>')
             raise
 
     def send_email(self, subject, body, to_addresses):
@@ -65,12 +79,15 @@ class EmailScheduler(QThread):
         retries = 3
         for attempt in range(retries):
             try:
+                log_info(logger, f"Attempting to send email, try {attempt + 1} of {retries}...")
                 server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
                 server.starttls()
                 server.login(SMTP_USERNAME, SMTP_PASSWORD)
                 server.sendmail(EMAIL_FROM, to_addresses, msg.as_string())
                 server.quit()
                 self.email_sent_successfully = True
+                log_success(logger, "Email sent successfully.")
+                self.log_signal.emit(f'<div style="color:green;">[{datetime.now().strftime("%H:%M:%S")}] [SUCCESS] Email sent successfully.</div>')
                 return True
             except smtplib.SMTPConnectError as e:
                 log_warning(logger, f"Network issue on attempt {attempt + 1} of {retries}: {e}")
@@ -105,9 +122,11 @@ class EmailScheduler(QThread):
         try:
             log_info(logger, f"Job started at {datetime.now()}")
             self.log_signal.emit(f'<div style="color:black;">[{datetime.now().strftime("%H:%M:%S")}] [INFO] Job started at {datetime.now()}</div>')
-            report_data = self.gather_report_data()
+            all_data = self.get_data()
+            if not self.email_subject:
+                self.email_subject = "Life's Good! Tomorrow is Pregnant!"
             if not self.email_sent_successfully:
-                if self.send_email(self.email_subject, report_data, self.email_to):
+                if self.send_email(self.email_subject, all_data, self.email_to):
                     self.email_sent_successfully = True
                     log_info(logger, f"Job completed successfully at {datetime.now()}")
                     self.log_signal.emit(f'<div style="color:green;">[{datetime.now().strftime("%H:%M:%S")}] [SUCCESS] Job completed successfully at {datetime.now()}</div>')
@@ -131,7 +150,7 @@ class EmailSchedulerGUI(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle('Email Scheduler')
+        self.setWindowTitle('Skedulr')
         self.setFixedSize(900, 700)
 
         main_layout = QVBoxLayout()
