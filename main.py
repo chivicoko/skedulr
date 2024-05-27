@@ -109,8 +109,8 @@ class EmailScheduler(QThread):
     def stop(self):
         self.running = False
         self.log_signal.emit(f'<div style="color:black;">[{datetime.now().strftime("%H:%M:%S")}] [INFO] Scheduler stopped.')
-        self.log_signal.emit(f'____**********************************************************____ \n')
-        log_info(logger, "Scheduler stopped. \n ____**********************************************************____ \n")
+        self.log_signal.emit(f'********************************************************** \n')
+        log_info(logger, "Scheduler stopped. \n ********************************************************** \n")
     
     def job(self):
         try:
